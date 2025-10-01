@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   await refreshIndexedDB();
   let savedKavithaigalFiles = await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY);
   if (!savedKavithaigalFiles && !isLocal) {
-    const files = await fetch(`${url}?action=GET_KAVITHAIKAL`).then(r => r.json());
+    const files = await fetch(`${url}?action=GET_KAVITHAIKAL`, { credentials: 'include' }).then(r => r.json());
     const modifiedFiles = files.map(f => ({ name: f.name, id: f.id, url: `${url}?action=GET_KAVITHAI&id=${f.id}` }));
     await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY, modifiedFiles);
     savedKavithaigalFiles = modifiedFiles;
@@ -133,7 +133,7 @@ async function fetchAndSaveKavithai(file) {
   const savedKavithai = await getInfoFromIndexedDB(KAVITHAI_CONTENT_KEY, fileName);
   let kavithaiContentText = savedKavithai;
   if (!savedKavithai) {
-    const fileContent = await fetch(file.url, { credentials: 'omit' }).then(r => r.json());
+    const fileContent = await fetch(file.url, { credentials: 'include' }).then(r => r.json());
     kavithaiContentText = fileContent.content;
     await saveInfoInIndexedDB(KAVITHAI_CONTENT_KEY, fileName, kavithaiContentText)
   }
