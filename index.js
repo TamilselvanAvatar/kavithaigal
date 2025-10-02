@@ -58,7 +58,7 @@ function getEmoji() {
 }
 
 function setFileContent(fileName, kavithaiContentText) {
-  kavithaiTitle.textContent = fileName;
+  kavithaiTitle.textContent = fileName + getEmoji();
   kavithaiContent.innerHTML = formatKavithai(kavithaiContentText); // preserves spaces & line breaks
   kavithaiContent.style.backgroundColor = getMataData().color;
   content.hidden = false;
@@ -110,7 +110,7 @@ async function handleExecutedScript(response) {
       break;
     }
     case GET_KAVITHAI: {
-      const fileName = responseData.name + getEmoji();
+      const fileName = responseData.name;
       const kavithaiContentText = responseData.content;
       setFileContent(fileName, kavithaiContentText);
       await saveInfoInIndexedDB(KAVITHAI_CONTENT_KEY, fileName, kavithaiContentText)
