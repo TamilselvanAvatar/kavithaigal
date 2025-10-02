@@ -1,11 +1,18 @@
+const paramsString = window.location.search || '';
+const searchParams = new URLSearchParams(paramsString);
+const paramsObject = Object.fromEntries(searchParams.entries());
+
 const url = 'https://script.google.com/macros/s/AKfycbyc7yvsdLrRI0sr3ld7bBBtnuo3Lb_1CHcSvuglTL0ZflaNTDSGT9HAVal9YpPdZMQyaA/exec'
 const KAVITHAI_DB = 'kavithaiDB';
 const KAVITHAIGAL_KEY = 'kavithaigalFiles';
 const KAVITHAI_CONTENT_KEY = 'kavithaiContent';
 const KAVITHAI_REFRESHED_COUNT_KEY = 'refreshedCount';
 const kavithaigalFileHandle = [];
-const isLocal = false;
-const refreshCount = 5;
+const isLocal = paramsObject.isLocal || false;
+const refreshCount = paramsObject.refresh || 5;
+const GET_KAVITHAI = 'GET_KAVITHAI';
+const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
+const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
 let previousSelectedKavithai;
 
 // UI Elements
@@ -14,6 +21,7 @@ const kavithaigalFiles = document.getElementById('kavithaigalList');
 const kavithaiTitle = document.getElementById('kavithaiTitle');
 const kavithaiContent = document.getElementById('kavithaiContent');
 const pickBtn = document.getElementById('pickFolder');
+const loader = document.getElementById('loader');
 
 
 const metaData = [
@@ -37,8 +45,24 @@ const metaData = [
 pickBtn.hidden = true;
 content.hidden = true;
 
+function getRandomIndex(len) {
+  return Math.floor(Math.random() * len)
+}
+
 function getMataData() {
-  return metaData[Math.floor(Math.random() * metaData.length)]
+  return metaData[getRandomIndex(metaData.length)]
+}
+
+function getEmoji() {
+  return ' ' + emoji[getRandomIndex(emoji.length)];
+}
+
+function setFileContent(fileName, kavithaiContentText) {
+  kavithaiTitle.textContent = fileName;
+  kavithaiContent.innerHTML = formatKavithai(kavithaiContentText); // preserves spaces & line breaks
+  kavithaiContent.style.backgroundColor = getMataData().color;
+  content.hidden = false;
+  loader.style.display = 'none';
 }
 
 function formatKavithai(kavithai) {
@@ -52,8 +76,8 @@ function formatKavithai(kavithai) {
     const isMeta = e.startsWith('#');
     const len = e.length;
     if (isMeta) {
-      const meta = e.split('=');
-      kavithaiMetaData[meta[0].replace('#', '')] = meta[1];
+      const meta = e?.split('=');
+      kavithaiMetaData[meta?.[0]?.replace('#', '')] = meta?.[1];
     } else {
       if (maxLen < len) {
         maxLen = len;
@@ -66,33 +90,38 @@ function formatKavithai(kavithai) {
   return modifiedKavithai + `\n\n${emptySpace}<strong><i>${author}</i></strong>`;
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-  await refreshIndexedDB();
-  let savedKavithaigalFiles = await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY);
-  if (!savedKavithaigalFiles && !isLocal) {
-    const files = await fetch(`${url}?action=GET_KAVITHAIKAL`, {
-      method: 'GET',
-      mode: 'cors',
-      credentials: 'omit'
-    }).then(r => r.json());
-    const modifiedFiles = files.map(f => ({ name: f.name, id: f.id, url: `${url}?action=GET_KAVITHAI&id=${f.id}` }));
-    await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY, modifiedFiles);
-    savedKavithaigalFiles = modifiedFiles;
-  } else if (isLocal) {
-    pickBtn.hidden = false;
-  }
-  await loadKavithigalFiles(savedKavithaigalFiles);
-});
+function loadGetScript(url) {
+  const script = document.createElement('script');
+  script.defer = true; // PARSE HTML COMPLETELY
+  script.src = url + `&callback=handleExecutedScript`; // ONLY WORK FOR GET REQUEST
+  script.onload = () => script.remove(); // CLEAN UP ONCE LOADED
+  document.body.appendChild(script);
+}
 
-// Pick local folder
-pickBtn.addEventListener('click', async () => {
-  try {
-    const resourcesDirHandle = await window.showDirectoryPicker();
-    await loadLocalFileAndContentInDB(resourcesDirHandle);
-  } catch (err) {
-    console.error('Folder pick cancelled or failed:', err);
+// Handle Executed Script
+async function handleExecutedScript(response) {
+  const responseData = response.data;
+  switch (response.action) {
+    case GET_KAVITHAIKAL: {
+      const files = responseData;
+      const modifiedFiles = files.map(f => ({ name: f.name, id: f.id, url: `${url}?action=${GET_KAVITHAI}&id=${f.id}` }));
+      await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY, modifiedFiles);
+      await loadKavithigalFiles(modifiedFiles);
+      break;
+    }
+    case GET_KAVITHAI: {
+      const fileName = responseData.name + getEmoji();
+      const kavithaiContentText = responseData.content;
+      setFileContent(fileName, kavithaiContentText);
+      await saveInfoInIndexedDB(KAVITHAI_CONTENT_KEY, fileName, kavithaiContentText)
+      break;
+    }
+    default: {
+      console.log('Something Wrong While Executing Script');
+      break;
+    }
   }
-});
+}
 
 // Load Local Files
 async function loadLocalFileAndContentInDB(dir) {
@@ -117,7 +146,7 @@ async function loadKavithigalFiles(fileDetails = []) {
   for (const file of fileDetails) {
     const btn = document.createElement('button');
     btn.className = 'kavithaiBtn';
-    btn.textContent = file.name;
+    btn.textContent = file.name + getEmoji();
     btn.onclick = async () => {
       if (previousSelectedKavithai) {
         previousSelectedKavithai.classList.remove('selected');
@@ -132,23 +161,16 @@ async function loadKavithigalFiles(fileDetails = []) {
 
 // Load and Save Kavithai
 async function fetchAndSaveKavithai(file) {
+  loader.style.display = 'flex';
+  content.hidden = true;
   document.body.classList.add('active');
   const fileName = file.name;
   const savedKavithai = await getInfoFromIndexedDB(KAVITHAI_CONTENT_KEY, fileName);
-  let kavithaiContentText = savedKavithai;
   if (!savedKavithai) {
-    const fileContent = await fetch(file.url, {
-      method: 'GET',
-      mode: 'cors',
-      credentials: 'omit'
-    }).then(r => r.json());
-    kavithaiContentText = fileContent.content;
-    await saveInfoInIndexedDB(KAVITHAI_CONTENT_KEY, fileName, kavithaiContentText)
+    loadGetScript(file.url);
+  } else {
+    setFileContent(fileName, savedKavithai);
   }
-  kavithaiTitle.textContent = fileName;
-  kavithaiContent.innerHTML = formatKavithai(kavithaiContentText); // preserves spaces & line breaks
-  kavithaiContent.style.backgroundColor = getMataData().color;
-  content.hidden = false;
 }
 
 // IndexedDB Helpers
@@ -171,7 +193,7 @@ function openDB() {
 
 async function refreshIndexedDB() {
   const refreshedCount = (await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAI_REFRESHED_COUNT_KEY)) || 0;
-  if (refreshedCount > refreshCount) {
+  if (refreshedCount >= refreshCount) {
     await deleteIndexedDB(KAVITHAI_DB);
   } else {
     await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAI_REFRESHED_COUNT_KEY, refreshedCount + 1);
@@ -215,3 +237,26 @@ async function getInfoFromIndexedDB(table, key) {
     req.onerror = () => reject(req.error);
   });
 }
+
+// Pick local folder
+pickBtn.addEventListener('click', async () => {
+  try {
+    const resourcesDirHandle = await window.showDirectoryPicker();
+    await loadLocalFileAndContentInDB(resourcesDirHandle);
+  } catch (err) {
+    console.error('Folder pick cancelled or failed:', err);
+  }
+});
+
+// On DOM Load
+window.addEventListener('DOMContentLoaded', async () => {
+  await refreshIndexedDB();
+  let savedKavithaigalFiles = await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY);
+  if (!savedKavithaigalFiles && !isLocal) {
+    loadGetScript(`${url}?action=${GET_KAVITHAIKAL}`);
+    return;
+  } else if (isLocal) {
+    pickBtn.hidden = false;
+  }
+  await loadKavithigalFiles(savedKavithaigalFiles);
+});
