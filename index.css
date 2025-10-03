@@ -1,144 +1,196 @@
+/* --- Global & Base Styles --- */
+/* BEST PRACTICE: Set base font size on HTML for consistent REM calculation */
+html {
+  /* If you want 1rem to equal 10px for easier math (1rem = 10px), use font-size: 62.5%; */
+  /* But sticking to browser default of 16px is better for accessibility. */
+  font-size: 100%;
+  /* Default 16px */
+}
+
 body {
   margin: 0;
   height: 100vh;
   display: flex;
+  flex-direction: column;
   overflow: hidden;
   background: #f3f4f6;
-  transition: all 0.6s ease;
-  font-family: 'Noto Sans Tamil', 'Latha', 'Arial Unicode MS', monospace;
+  transition: all 0.5s ease;
+  font-family: 'Poppins', 'Noto Sans Tamil', 'Latha', 'Arial Unicode MS', sans-serif;
 }
 
-/* Sidebar styles */
+/* Remove Scroll Bar - Good Practice */
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  scrollbar-width: none;
+}
+
+* {
+  -ms-overflow-style: none;
+}
+
+/* --- Sidebar Styles (Default - Mobile-First) --- */
 #sidebar {
-  width: 50%;
-  background: #f9fafb;
-  padding: 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
+  background: #ffffff;
+  padding: 1rem;
+  /* Converted from 15px */
+  box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.2);
+  /* Converted from 10px */
   overflow-y: auto;
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 50%;
-  /* initially center */
-  transform: translateX(-50%);
-  /* center align */
-  transition: all 0.6s ease;
-  /* smooth movement */
-  z-index: 2;
+  left: -100%;
+  transition: all 0.5s ease;
+  z-index: 10;
 }
 
 #sidebar h2 {
   margin-top: 0;
-  padding: 8px 4px;
-  background-color: #869be26b;
-  border-radius: 12px;
+  padding: 0.625rem 0.25rem;
+  /* Converted from 10px 4px */
+  background-color: #869be233;
+  border-radius: 0.5rem;
+  /* Converted from 8px */
   text-align: center;
-}
-
-.kavithaiBtn {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 8px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background: #fff;
-  text-align: left;
-  font-size: 15px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: background 0.2s;
-}
-
-.selected {
-  background: #d2d2d278;
-}
-
-.kavithaiBtn:hover {
-  background: #e0e7ff;
+  color: #4f46e5;
+  font-size: 1.3em;
+  /* EM is good for text size relative to parent */
 }
 
 #pickFolder {
   width: 100%;
-  padding: 8px 12px;
-  margin-bottom: 15px;
+  padding: 0.625rem 0.75rem;
+  /* Converted from 10px 12px */
+  margin-bottom: 0.9375rem;
+  /* Converted from 15px */
   border: none;
-  border-radius: 6px;
+  border-radius: 0.375rem;
+  /* Converted from 6px */
   background: #4f46e5;
   color: #fff;
   cursor: pointer;
+  font-size: 1rem;
+  /* Converted from 16px */
+  transition: background 0.3s;
 }
 
-/* conatiner initially hidden */
+.kavithaiBtn {
+  width: 100%;
+  padding: 0.75rem;
+  /* Converted from 12px */
+  margin-bottom: 0.375rem;
+  /* Converted from 6px */
+  border: none;
+  border-radius: 0.375rem;
+  /* Converted from 6px */
+  cursor: pointer;
+  background: #f9fafb;
+  text-align: left;
+  font-size: 0.9375rem;
+  /* Converted from 15px */
+  box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.08);
+  /* Converted from 1px 3px */
+  transition: all 0.2s;
+}
+
+.selected {
+  background: #e0e7ff;
+  font-weight: bold;
+  color: #4f46e5;
+  border-left: 0.25rem solid #4f46e5;
+  /* Converted from 4px */
+}
+
+.kavithaiBtn:hover {
+  background: #e0e7ff;
+  transform: translateY(-0.0625rem);
+  /* Converted from -1px */
+  box-shadow: 0 0.125rem 0.3125rem rgba(0, 0, 0, 0.1);
+  /* Converted from 2px 5px */
+}
+
+/* --- Main Content Container (Container) --- */
 #conatiner {
   flex: 1;
-  padding: 20px;
+  padding: 1.25rem;
+  /* Converted from 20px */
   overflow-y: auto;
   background: #ffffff;
-  transform: translateX(100%);
-  /* offscreen initially */
-  opacity: 0;
-  transition: all 0.6s ease;
+  transform: none;
+  opacity: 1;
+  transition: all 0.5s ease;
+  position: relative;
 }
 
 #kavithaiTitle {
+  /* --- STICKY STYLES MODIFIED --- */
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  /* INCREASED Z-INDEX: Ensures title is on top of pre (which is z-index 1) */
+  background: #ffffff;
   margin-top: 0;
-  font-size: 1.6em;
+  font-size: 1.8em;
   color: #1f2937;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
+  border-bottom: 0.125rem solid #e5e7eb;
+  padding-bottom: 0.9375rem;
+  /* Reduced margin-bottom as the content will now start immediately after the title */
+  margin-bottom: 0.5rem;
+  text-align: center;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
 }
 
 pre#kavithaiContent {
-  white-space: pre;
-  width: 50%;
-  /* keep spaces & line breaks exactly */
-  font-family: 'Noto Sans Tamil', 'Latha', 'Arial Unicode MS', monospace;
+  /* --- NEW SCROLLABLE CONTENT STYLES --- */
+  max-height: calc(100vh - 12rem);
+  /* 
+  Short Content (Fewer lines than screen height): The actual height of the pre element will be dictated by the poem's content (total lines). max-height is ignored, and no scrollbar appears, fulfilling the "based on content total line" part.
+  Long Content (More lines than screen height): The height of the pre element will be capped at the max-height: calc(100vh - ...) value. The overflow-y: auto; then engages a scrollbar, fulfilling the "limited by viewport" part.
+  */
+  overflow-y: auto;
+  z-index: 1;
+  /* Lower z-index than the sticky title */
+
+  white-space: pre-wrap;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Noto Sans Tamil', 'Poppins', 'Latha', sans-serif;
   overflow-x: auto;
   background: #f9fafb;
-  border-radius: 8px;
-  padding: 16px;
-  font-size: 15px;
-  line-height: 1.6;
+  border-radius: 0.5rem;
+  padding: 0.9375rem;
+  font-size: 0.9375rem;
+  line-height: 1.7;
   color: #111827;
-  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 0 0.3125rem rgba(0, 0, 0, 0.05);
 }
 
+/* --- Loader Styles --- */
 #loader {
   display: flex;
-  align-items: center;
-  /* Crucially, make the loader fill the entire container area so the content inside it (the spinner) centers relative to the container. */
   position: absolute;
-  top: 25%;
-  left: 45%;
-  justify-content: center;
-  align-items: center;
-  height: 100px;
-  /* or full height: 100vh */
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
 }
 
 .spinner {
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #9c15ef;
+  border: 0.3125rem solid #e5e7eb;
+  /* Converted from 5px */
+  border-top: 0.3125rem solid #4f46e5;
+  /* Converted from 5px */
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 3.125rem;
+  /* Converted from 50px */
+  height: 3.125rem;
+  /* Converted from 50px */
   animation: spin 1s linear infinite;
-}
-
-/* ---- Active State (after first click) ---- */
-body.active #sidebar {
-  position: relative;
-  width: 20%;
-  left: 0;
-  transform: translateX(0);
-  /* slide left into place */
-}
-
-body.active #conatiner {
-  transform: translateX(0);
-  /* slide in */
-  opacity: 1;
 }
 
 @keyframes spin {
@@ -151,25 +203,45 @@ body.active #conatiner {
   }
 }
 
-@media screen and (max-width: 500px) {
-  pre#kavithaiContent {
-    width: 75%;
+/* --- Mobile Active State (Sidebar Open) --- */
+body.active #sidebar {
+  left: 0;
+}
+
+/* --- Desktop/Tablet Layout (Screen > 550px) --- */
+@media screen and (min-width: 34.4375em) {
+
+  /* Converted from 551px to 34.4375em (551/16) */
+  body {
+    flex-direction: row;
   }
-}
 
-/* Remove Scroll Bar */
-/* For Chrome, Safari, Edge */
-::-webkit-scrollbar {
-  display: none;
-}
+  #sidebar {
+    position: relative;
+    width: 18.75rem;
+    /* Converted from 300px */
+    left: 35%;
+    transform: none;
+    box-shadow: 0.125rem 0 0.3125rem rgba(0, 0, 0, 0.05);
+    /* Converted from 2px 5px */
+  }
 
-/* For Firefox */
-* {
-  scrollbar-width: none;
-  /* hides scrollbar but keeps scroll */
-}
+  #conatiner {
+    flex: 1;
+    padding: 1.875rem;
+    /* Converted from 30px */
+  }
 
-/* For IE/Edge (legacy) */
-* {
-  -ms-overflow-style: none;
+  #kavithaiTitle {
+    text-align: left;
+  }
+
+  pre#kavithaiContent {
+    width: 40.625rem;
+    /* Converted from 650px */
+    max-width: 90%;
+    white-space: pre;
+    font-size: 1rem;
+    /* Converted from 16px */
+  }
 }

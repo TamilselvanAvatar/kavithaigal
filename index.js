@@ -13,10 +13,13 @@ const refreshCount = paramsObject.refresh || 5;
 const GET_KAVITHAI = 'GET_KAVITHAI';
 const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
 const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
+let scriptTimeout;
 let previousSelectedKavithai;
 
 // UI Elements
+const sidebar = document.getElementById('sidebar');
 const content = document.getElementById('content');
+const container = document.getElementById('conatiner');
 const kavithaigalFiles = document.getElementById('kavithaigalList');
 const kavithaiTitle = document.getElementById('kavithaiTitle');
 const kavithaiContent = document.getElementById('kavithaiContent');
@@ -44,6 +47,29 @@ const metaData = [
 
 pickBtn.hidden = true;
 content.hidden = true;
+container.hidden = true;
+
+function addSpinner(tag) {
+  /* 
+  <div id='loader'>
+    <div class='spinner'></div>
+  </div>
+  */
+  const loaderDiv = document.createElement('div');
+  const spinnerDiv = document.createElement('div');
+  loaderDiv.id = 'loader';
+  spinnerDiv.className = 'spinner';
+  loaderDiv.appendChild(spinnerDiv);
+  tag.appendChild(loaderDiv);
+}
+
+function removeSpinner(tag) {
+  const loader = tag.querySelector('#loader');
+  if (loader) {
+    loader.remove();
+  }
+}
+
 
 function getRandomIndex(len) {
   return Math.floor(Math.random() * len)
@@ -62,7 +88,7 @@ function setFileContent(fileName, kavithaiContentText) {
   kavithaiContent.innerHTML = formatKavithai(kavithaiContentText); // preserves spaces & line breaks
   kavithaiContent.style.backgroundColor = getMataData().color;
   content.hidden = false;
-  loader.style.display = 'none';
+  removeSpinner(container);
 }
 
 function formatKavithai(kavithai) {
@@ -96,10 +122,36 @@ function loadGetScript(url) {
   script.src = url + `&callback=handleExecutedScript`; // ONLY WORK FOR GET REQUEST
   script.onload = () => script.remove(); // CLEAN UP ONCE LOADED
   document.body.appendChild(script);
+  scriptTimeout = setTimeout(() => {
+    console.warn("Script execution timed out. Assuming network failure/offline.");
+    document.body.removeChild(script);
+    handleFailure();
+  }, 15000); // 15 seconds timeout
+}
+
+function handleFailure() {
+  document.body.style.justifyContent = 'space-around';
+  document.body.style.alignItems = 'flex-start';
+  document.body.style.marginTop = '10px';
+  document.body.innerHTML =
+    `<div style="padding: 1rem; margin-bottom: 1rem; text-align: center; background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 0.5rem;">
+      <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.125rem; color: #dc2626; border-bottom: 1px solid #fcd3d1; padding-bottom: 0.5rem;">
+          ⚠️ Offline Mode
+      </h3>
+      <ul style="list-style: disc inside; padding-left: 0; margin: 0.75rem 0; font-size: 0.9375rem; color: #4b5563;">
+          <li>No active internet connection detected.</li>
+          <li>No previously cached kavithai is available.</li>
+      </ul>
+      <p style="margin-top: 1rem; padding: 0.5rem; font-weight: bold; font-size: 1rem; color: #991b1b; background-color: #fee2e2; border-radius: 0.375rem;">
+          Please connect to the internet to load content.
+      </p>
+    </div>
+  `;
 }
 
 // Handle Executed Script
 async function handleExecutedScript(response) {
+  clearTimeout(scriptTimeout);
   const responseData = response.data;
   switch (response.action) {
     case GET_KAVITHAIKAL: {
@@ -142,6 +194,7 @@ async function loadLocalFileAndContentInDB(dir) {
 
 // Load Kavithaigal File
 async function loadKavithigalFiles(fileDetails = []) {
+  removeSpinner(kavithaigalFiles);
   kavithaigalFiles.innerHTML = '';
   for (const file of fileDetails) {
     const btn = document.createElement('button');
@@ -161,7 +214,8 @@ async function loadKavithigalFiles(fileDetails = []) {
 
 // Load and Save Kavithai
 async function fetchAndSaveKavithai(file) {
-  loader.style.display = 'flex';
+  container.hidden = false;
+  addSpinner(container);
   content.hidden = true;
   document.body.classList.add('active');
   const fileName = file.name;
@@ -250,6 +304,7 @@ pickBtn.addEventListener('click', async () => {
 
 // On DOM Load
 window.addEventListener('DOMContentLoaded', async () => {
+  addSpinner(kavithaigalFiles);
   await refreshIndexedDB();
   let savedKavithaigalFiles = await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY);
   if (!savedKavithaigalFiles && !isLocal) {
