@@ -111,9 +111,9 @@ function formatKavithai(kavithai) {
     }
     return !isMeta;
   }).join('\n');
-  const author = `- ${kavithaiMetaData.Author}`;
+  const author = kavithaiMetaData.Author ?? '';
   const emptySpace = ' '.repeat(maxLen);
-  return modifiedKavithai + `\n\n${emptySpace}<strong><i>${author}</i></strong>`;
+  return modifiedKavithai + (author && `\n\n${emptySpace}<strong><i>- ${author}</i></strong>`);
 }
 
 function loadGetScript(url) {
@@ -129,21 +129,21 @@ function loadGetScript(url) {
   }, 15000); // 15 seconds timeout
 }
 
-function handleFailure() {
+function handleFailure(data = {}) {
   document.body.style.justifyContent = 'space-around';
   document.body.style.alignItems = 'flex-start';
   document.body.style.marginTop = '10px';
   document.body.innerHTML =
     `<div style="padding: 1rem; margin-bottom: 1rem; text-align: center; background-color: #fef2f2; border: 1px solid #fca5a5; border-radius: 0.5rem;">
       <h3 style="margin-top: 0; margin-bottom: 0.5rem; font-size: 1.125rem; color: #dc2626; border-bottom: 1px solid #fcd3d1; padding-bottom: 0.5rem;">
-          ⚠️ Offline Mode
+          ${data.isCutom ? data.title : '⚠️ Offline Mode'}
       </h3>
-      <ul style="list-style: disc inside; padding-left: 0; margin: 0.75rem 0; font-size: 0.9375rem; color: #4b5563;">
+      <ul style="list-style: disc inside; padding-left: 0; margin: 0.75rem 0; font-size: 0.9375rem; color: #4b5563;" ${data.isCutom ? `hidden = true` : ''}>
           <li>No active internet connection detected.</li>
           <li>No previously cached kavithai is available.</li>
       </ul>
       <p style="margin-top: 1rem; padding: 0.5rem; font-weight: bold; font-size: 1rem; color: #991b1b; background-color: #fee2e2; border-radius: 0.375rem;">
-          Please connect to the internet to load content.
+          ${data.isCutom ? data.message : 'Please connect to the internet to load content.'}
       </p>
     </div>
   `;
@@ -169,7 +169,7 @@ async function handleExecutedScript(response) {
       break;
     }
     default: {
-      console.log('Something Wrong While Executing Script');
+      handleFailure({ isCutom: true, title: 'Kavithaigal Is Not Available Now', message: 'Sorry for Inconvenience' })
       break;
     }
   }
