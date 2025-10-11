@@ -150,8 +150,8 @@ pre#kavithaiContent {
   max-height: calc(100vh - 12rem);
   /* 
   Short Content (Fewer lines than screen height): The actual height of the pre element will be dictated by the poem's content (total lines). max-height is ignored, and no scrollbar appears, fulfilling the "based on content total line" part.
-  Long Content (More lines than screen height): The height of the pre element will be capped at the max-height: calc(100vh - ...) value. The overflow-y: auto; then engages a scrollbar, fulfilling the "limited by viewport" part.
-  */
+	Long Content (More lines than screen height): The height of the pre element will be capped at the max-height: calc(100vh - ...) value. The overflow-y: auto; then engages a scrollbar, fulfilling the "limited by viewport" part.
+	*/
   overflow-y: auto;
   z-index: 1;
   /* Lower z-index than the sticky title */
@@ -206,6 +206,8 @@ pre#kavithaiContent {
 /* --- Mobile Active State (Sidebar Open) --- */
 body.active #sidebar {
   left: 0;
+  /* Set max width relative to viewport for better mobile fitting */
+  width: min(85vw, 22rem); 
 }
 
 /* --- Desktop/Tablet Layout (Screen > 550px) --- */
@@ -214,16 +216,25 @@ body.active #sidebar {
   /* Converted from 551px to 34.4375em (551/16) */
   body {
     flex-direction: row;
+    /* CENTER THE ENTIRE LAYOUT BLOCK */
+    justify-content: center;
   }
 
   #sidebar {
     position: relative;
-    width: 18.75rem;
-    /* Converted from 300px */
-    left: 35%;
-    transform: none;
+    /* DEFAULT WIDE STATE */
+    width: 30rem;
+    left: 0;
+    right: 0;
+    max-width: none;
     box-shadow: 0.125rem 0 0.3125rem rgba(0, 0, 0, 0.05);
-    /* Converted from 2px 5px */
+    transition: width 0.5s ease, box-shadow 0.5s ease; /* Ensure transition for width change */
+  }
+
+  /* SIDEBAR MINIMUM WIDTH (Once a list item is clicked, body.active is applied) */
+  body.active #sidebar {
+    width: 15rem; /* Minimized width on click */
+    box-shadow: 0.125rem 0 0.3125rem rgba(0, 0, 0, 0.1);
   }
 
   #conatiner {
@@ -232,14 +243,19 @@ body.active #sidebar {
     /* Converted from 30px */
   }
 
+  /* Ensure container expands when sidebar shrinks */
+  body.active #conatiner {
+      flex: 1;
+  }
+
   #kavithaiTitle {
     text-align: left;
   }
 
   pre#kavithaiContent {
-    width: 40.625rem;
-    /* Converted from 650px */
-    max-width: 90%;
+    /* Removed fixed width, allowing it to flex with the container */
+    max-width: 100%;
+    width: max-content;
     white-space: pre;
     font-size: 1rem;
     /* Converted from 16px */
