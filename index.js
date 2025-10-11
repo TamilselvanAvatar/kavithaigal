@@ -10,6 +10,7 @@ const KAVITHAI_REFRESHED_COUNT_KEY = 'refreshedCount';
 const kavithaigalFileHandle = [];
 const isLocal = paramsObject.isLocal || false;
 const refreshCount = paramsObject.refresh || 5;
+const includeDate = paramsObject.date || false;
 const GET_KAVITHAI = 'GET_KAVITHAI';
 const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
 const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
@@ -112,8 +113,10 @@ function formatKavithai(kavithai) {
     return !isMeta;
   }).join('\n');
   const author = kavithaiMetaData.Author ?? '';
+  const date = kavithaiMetaData.Date ?? '';
+  const dateStr = `<b>தேதி: ${date}\n</b>`
   const emptySpace = ' '.repeat(maxLen);
-  return modifiedKavithai + (author && `\n\n${emptySpace}<strong><i>- ${author}</i></strong>`);
+  return (includeDate ? dateStr : '') + modifiedKavithai + (author && `\n\n${emptySpace}<strong><i>- ${author}</i></strong>`);
 }
 
 function loadGetScript(url) {
