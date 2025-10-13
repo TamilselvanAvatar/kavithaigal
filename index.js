@@ -11,6 +11,7 @@ const kavithaigalFileHandle = [];
 const isLocal = paramsObject.isLocal || false;
 const refreshCount = paramsObject.refresh || 5;
 const includeDate = paramsObject.date || false;
+const code = paramsObject.code || '';
 const GET_KAVITHAI = 'GET_KAVITHAI';
 const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
 const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
@@ -24,6 +25,7 @@ const container = document.getElementById('conatiner');
 const kavithaigalFiles = document.getElementById('kavithaigalList');
 const kavithaiTitle = document.getElementById('kavithaiTitle');
 const kavithaiContent = document.getElementById('kavithaiContent');
+const kavithaiCount = document.getElementById('kavithaiCount');
 const pickBtn = document.getElementById('pickFolder');
 const loader = document.getElementById('loader');
 
@@ -121,8 +123,9 @@ function formatKavithai(kavithai) {
 
 function loadGetScript(url) {
   const script = document.createElement('script');
+  const modifiedUrl = url + (code ? `&code=${code}` : '')
   script.defer = true; // PARSE HTML COMPLETELY
-  script.src = url + `&callback=handleExecutedScript`; // ONLY WORK FOR GET REQUEST
+  script.src = modifiedUrl + `&callback=handleExecutedScript`; // ONLY WORK FOR GET REQUEST
   script.onload = () => script.remove(); // CLEAN UP ONCE LOADED
   document.body.appendChild(script);
   scriptTimeout = setTimeout(() => {
@@ -198,6 +201,7 @@ async function loadLocalFileAndContentInDB(dir) {
 // Load Kavithaigal File
 async function loadKavithigalFiles(fileDetails = []) {
   removeSpinner(kavithaigalFiles);
+  kavithaiCount.innerHTML = fileDetails.length;
   kavithaigalFiles.innerHTML = '';
   for (const file of fileDetails) {
     const btn = document.createElement('button');

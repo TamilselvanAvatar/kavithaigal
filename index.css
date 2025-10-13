@@ -43,7 +43,7 @@ body {
   /* --- MODIFIED: Added Flexbox layout for sticky header/button and scrollable list --- */
   display: flex;
   flex-direction: column;
-  overflow-y: hidden; 
+  overflow-y: hidden;
   /* ----------------------------------------------------------------- */
   position: absolute;
   top: 0;
@@ -92,12 +92,13 @@ body {
   overflow-y: auto; /* Enables vertical scrolling when content overflows */
   min-height: 0; /* Fix for flex containers */
   padding-right: 0.5rem; /* Add padding inside the scroll container for better aesthetics */
-  
+
   /* --- NEW: Scroll Fade Effect (Animation Illusion) --- */
   /* This creates a soft fade effect at the top/bottom of the scroll container */
   mask-image: linear-gradient(to bottom, transparent 0%, black 1rem, black calc(100% - 1rem), transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 1rem, black calc(100% - 1rem), transparent 100%);
 }
+
 /* ------------------------------------ */
 
 .kavithaiBtn {
@@ -111,13 +112,19 @@ body {
   /* Converted from 6px */
   cursor: pointer;
   background: #f9fafb;
-  text-align: left;
   font-size: 0.9375rem;
   /* Converted from 15px */
   box-shadow: 0 0.0625rem 0.1875rem rgba(0, 0, 0, 0.08);
   /* Converted from 1px 3px */
   transition: all 0.2s;
   box-sizing: border-box; /* Ensure padding doesn't push width over 100% */
+  /* --- Single-Line and Overflow Control --- */
+  text-align: left;
+  white-space: nowrap;      /* FORCES text onto a single line */
+  overflow-x: auto;         /* ADDS a horizontal scrollbar if content overflows */
+  overflow-y: hidden;       /* Hides vertical scrollbar */
+  text-overflow: clip;      /* Clipping is fine when scrolling is enabled */
+  /* -------------------------------------- */
 }
 
 .selected {
@@ -215,6 +222,31 @@ pre#kavithaiContent {
   animation: spin 1s linear infinite;
 }
 
+/* Style the span element to look like a badge */
+#kavithaiCount {
+  /* Required: Allows setting padding/margin and places it inline with the text */
+  display: inline-block;
+
+  /* Visual Appearance */
+  background-color: #3d3f40;
+  color: white;
+  font-size: 0.5rem;
+  font-weight: bold;
+
+  /* Shape and Sizing */
+  border-radius: 999px;
+  padding: 2px 7px;
+  line-height: 1;
+
+  /* Spacing: Move it slightly away from the main text */
+  margin-left: 0.5rem;
+  vertical-align: top;
+}
+
+#kavithaiCount:empty {
+  display: none;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -229,7 +261,7 @@ pre#kavithaiContent {
 body.active #sidebar {
   left: 0;
   /* Set max width relative to viewport for better mobile fitting */
-  width: min(85vw, 22rem); 
+  width: min(85vw, 22rem);
 }
 
 /* --- Desktop/Tablet Layout (Screen > 550px) --- */
@@ -267,7 +299,7 @@ body.active #sidebar {
 
   /* Ensure container expands when sidebar shrinks */
   body.active #conatiner {
-      flex: 1;
+    flex: 1;
   }
 
   #kavithaiTitle {
