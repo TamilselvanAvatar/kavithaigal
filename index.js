@@ -87,7 +87,7 @@ function getEmoji() {
 }
 
 function setFileContent(fileName, kavithaiContentText) {
-  kavithaiTitle.textContent = fileName + getEmoji();
+  kavithaiTitle.textContent = fileName;
   kavithaiContent.innerHTML = formatKavithai(kavithaiContentText); // preserves spaces & line breaks
   kavithaiContent.style.backgroundColor = getMataData().color;
   content.hidden = false;
@@ -114,6 +114,7 @@ function formatKavithai(kavithai) {
     }
     return !isMeta;
   }).join('\n');
+  kavithaiTitle.textContent = (kavithaiMetaData.Title || kavithaiTitle.textContent) + getEmoji();
   const author = kavithaiMetaData.Author ?? '';
   const date = kavithaiMetaData.Date ?? '';
   const dateStr = `<b>தேதி: ${date}\n</b>`
