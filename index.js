@@ -2,20 +2,23 @@ const paramsString = window.location.search || '';
 const searchParams = new URLSearchParams(paramsString);
 const paramsObject = Object.fromEntries(searchParams.entries());
 
-const url = 'https://script.google.com/macros/s/AKfycbyc7yvsdLrRI0sr3ld7bBBtnuo3Lb_1CHcSvuglTL0ZflaNTDSGT9HAVal9YpPdZMQyaA/exec'
+const url = 'https://script.google.com/macros/s/AKfycbx6Vur6zb4KJlQLQZ3Sj4gzcdAMOMAEZcYYfewmCVyu3Srs_PfKY9LGV90LdE0dizio/exec'
 const KAVITHAI_DB = 'kavithaiDB';
 const KAVITHAIGAL_KEY = 'kavithaigalFiles';
 const KAVITHAI_CONTENT_KEY = 'kavithaiContent';
 const KAVITHAI_REFRESHED_COUNT_KEY = 'refreshedCount';
+const QUERY_PARAMS_PRESENT_PREVIOUSLY = 'queryParamPresentPreviously'
 const kavithaigalFileHandle = [];
 const isLocal = paramsObject.isLocal || false;
 const refreshCount = paramsObject.refresh || 5;
 const includeDate = paramsObject.date || false;
 const code = paramsObject.code || '';
+const id = paramsObject.id;
 const GET_KAVITHAI = 'GET_KAVITHAI';
 const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
 const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
 let scriptTimeout;
+let clickTimer;
 let previousSelectedKavithai;
 
 // UI Elements
@@ -73,17 +76,45 @@ function removeSpinner(tag) {
   }
 }
 
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.innerText = message;
 
-function getRandomIndex(len) {
-  return Math.floor(Math.random() * len)
+  toast.classList.remove('toast-hidden');
+  toast.classList.add('toast-visible');
+
+  setTimeout(() => {
+    toast.classList.remove('toast-visible');
+    toast.classList.add('toast-hidden');
+  }, 2500);
+}
+
+function doCopyToClipBoard(file) {
+  const shareUrl = window.location.origin + `?id=${file.id}&name=${file.name}`;
+  navigator.clipboard.writeText(shareUrl)
+    .then(() => {
+      console.log('🔗 Ready to share!' + shareUrl);
+      showToast('📋 Link copied!');
+    })
+    .catch(err => {
+      console.error('Failed to copy!', err);
+    });
+}
+
+function getEmoji() {
+  return ' ' + emoji[getRandomIndex(emoji.length)];
 }
 
 function getMataData() {
   return metaData[getRandomIndex(metaData.length)]
 }
 
-function getEmoji() {
-  return ' ' + emoji[getRandomIndex(emoji.length)];
+function getRandomIndex(len) {
+  return Math.floor(Math.random() * len)
+}
+
+function getQueryParam(param, paramValue) {
+  return (paramValue ? `&${param}=${paramValue}` : '')
 }
 
 function setFileContent(fileName, kavithaiContentText) {
@@ -124,7 +155,7 @@ function formatKavithai(kavithai) {
 
 function loadGetScript(url) {
   const script = document.createElement('script');
-  const modifiedUrl = url + (code ? `&code=${code}` : '')
+  const modifiedUrl = url + getQueryParam('code', code) + getQueryParam('id', id);
   script.defer = true; // PARSE HTML COMPLETELY
   script.src = modifiedUrl + `&callback=handleExecutedScript`; // ONLY WORK FOR GET REQUEST
   script.onload = () => script.remove(); // CLEAN UP ONCE LOADED
@@ -208,13 +239,24 @@ async function loadKavithigalFiles(fileDetails = []) {
     const btn = document.createElement('button');
     btn.className = 'kavithaiBtn';
     btn.textContent = file.name + getEmoji();
-    btn.onclick = async () => {
-      if (previousSelectedKavithai) {
-        previousSelectedKavithai.classList.remove('selected');
+    btn.onclick = () => {
+      if (clickTimer) {
+        // DOUBLE CLICK DETECTED 
+        clearTimeout(clickTimer);
+        clickTimer = null;
+        doCopyToClipBoard(file);
+      } else {
+        // POTENTIAL SINGLE CLICK
+        clickTimer = setTimeout(async () => {
+          if (previousSelectedKavithai) {
+            previousSelectedKavithai.classList.remove('selected');
+          }
+          previousSelectedKavithai = btn;
+          btn.classList.add('selected');
+          await fetchAndSaveKavithai(file);
+          clickTimer = null;
+        }, 250);
       }
-      previousSelectedKavithai = btn;
-      btn.classList.add('selected');
-      fetchAndSaveKavithai(file)
     };
     kavithaigalFiles.appendChild(btn);
   }
@@ -254,11 +296,17 @@ function openDB() {
 }
 
 async function refreshIndexedDB() {
-  const refreshedCount = (await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAI_REFRESHED_COUNT_KEY)) || 0;
-  if (refreshedCount >= refreshCount) {
+  const refreshedCount = (await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAI_REFRESHED_COUNT_KEY)) ?? 0;
+  const queryParamPresentPreviously = (await getInfoFromIndexedDB(KAVITHAIGAL_KEY, QUERY_PARAMS_PRESENT_PREVIOUSLY)) ?? false;
+  const isQueryParamPresent = window?.location?.href?.includes('?');
+  if (refreshedCount >= refreshCount || (queryParamPresentPreviously && !isQueryParamPresent)) {
     await deleteIndexedDB(KAVITHAI_DB);
+    if (isQueryParamPresent) {
+      window.location.href = window.location.origin
+    }
   } else {
     await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAI_REFRESHED_COUNT_KEY, refreshedCount + 1);
+    await saveInfoInIndexedDB(KAVITHAIGAL_KEY, QUERY_PARAMS_PRESENT_PREVIOUSLY, isQueryParamPresent);
   }
 };
 
@@ -314,8 +362,9 @@ pickBtn.addEventListener('click', async () => {
 window.addEventListener('DOMContentLoaded', async () => {
   addSpinner(kavithaigalFiles);
   await refreshIndexedDB();
-  let savedKavithaigalFiles = await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY);
-  if (!savedKavithaigalFiles && !isLocal) {
+  let savedKavithaigalFiles = await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY) ?? [];
+  id && (savedKavithaigalFiles = savedKavithaigalFiles.filter(file => file.id == id));
+  if (savedKavithaigalFiles?.length == 0 && !isLocal) {
     loadGetScript(`${url}?action=${GET_KAVITHAIKAL}`);
     return;
   } else if (isLocal) {
