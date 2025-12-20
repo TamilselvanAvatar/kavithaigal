@@ -90,7 +90,7 @@ function showToast(message) {
 }
 
 function doCopyToClipBoard(file) {
-  const shareUrl = window.location.origin + window.location.pathname + `?id=${file.id}&name=${file.name}`;
+  const shareUrl = getActualUrl() + `?id=${file.id}&name=${file.name}`;
   navigator.clipboard.writeText(shareUrl)
     .then(() => {
       console.log('🔗 Ready to share!' + shareUrl);
@@ -99,6 +99,10 @@ function doCopyToClipBoard(file) {
     .catch(err => {
       console.error('Failed to copy!', err);
     });
+}
+
+function getActualUrl() {
+  return window.location.origin + window.location.pathname;
 }
 
 function getEmoji() {
@@ -302,7 +306,7 @@ async function refreshIndexedDB() {
   if (refreshedCount >= refreshCount || (queryParamPresentPreviously && !isQueryParamPresent)) {
     await deleteIndexedDB(KAVITHAI_DB);
     if (isQueryParamPresent) {
-      window.location.href = window.location.origin
+      window.location.href = getActualUrl();
     }
   } else {
     await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAI_REFRESHED_COUNT_KEY, refreshedCount + 1);
