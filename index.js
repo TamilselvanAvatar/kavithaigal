@@ -90,7 +90,7 @@ function showToast(message) {
 }
 
 function doCopyToClipBoard(file) {
-  const shareUrl = window.location.origin + `?id=${file.id}&name=${file.name}`;
+  const shareUrl = window.location.origin + window.location.pathname + `?id=${file.id}&name=${file.name}`;
   navigator.clipboard.writeText(shareUrl)
     .then(() => {
       console.log('🔗 Ready to share!' + shareUrl);
