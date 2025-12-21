@@ -276,9 +276,9 @@ async function loadKavithigalFiles(fileDetails = []) {
         btn.classList.remove('copy-url');
         btn.classList.add('copy-url-success');
         setTimeout(() => btn.classList.remove('copy-url-success'), 1000);
-      }, 400);
+      }, 2000);
     };
-    btn.onpointerup = (e) => {
+    btn.onpointerup = btn.onpointermove = btn.onpointercancel = (e) => {
       clearTimeout(holdTimer);
       btn.classList.remove('copy-url')
     };

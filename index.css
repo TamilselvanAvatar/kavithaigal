@@ -127,7 +127,8 @@ body {
   text-overflow: clip;      /* Clipping is fine when scrolling is enabled */
   /* -------------------------------------- */
   /* Prevent blue highlight box on mobile tap */
-  -webkit-tap-highlight-color: transparent; 
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 /* The Progress Bar Line */
