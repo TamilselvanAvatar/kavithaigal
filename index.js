@@ -19,6 +19,7 @@ const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
 const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
 let scriptTimeout;
 let clickTimer;
+let holdTimer;
 let previousSelectedKavithai;
 
 // UI Elements
@@ -138,6 +139,7 @@ function formatKavithai(kavithai) {
   const tempKavithai = kavithai.split('\n');
   const modifiedKavithai = tempKavithai.filter(e => {
     const isMeta = e.startsWith('#');
+    const ignore = e.startsWith(':');
     const len = e.length;
     if (isMeta) {
       const meta = e?.split('=');
@@ -147,7 +149,7 @@ function formatKavithai(kavithai) {
         maxLen = len;
       }
     }
-    return !isMeta;
+    return !isMeta && !ignore;
   }).join('\n');
   kavithaiTitle.textContent = (kavithaiMetaData.Title || kavithaiTitle.textContent) + getEmoji();
   const author = kavithaiMetaData.Author ?? '';
@@ -243,6 +245,14 @@ async function loadKavithigalFiles(fileDetails = []) {
     const btn = document.createElement('button');
     btn.className = 'kavithaiBtn';
     btn.textContent = file.name + getEmoji();
+    const handleSelection = async () => {
+      if (previousSelectedKavithai) {
+        previousSelectedKavithai.classList.remove('selected');
+      }
+      previousSelectedKavithai = btn;
+      btn.classList.add('selected');
+      await fetchAndSaveKavithai(file);
+    }
     btn.onclick = () => {
       if (clickTimer) {
         // DOUBLE CLICK DETECTED 
@@ -252,15 +262,25 @@ async function loadKavithigalFiles(fileDetails = []) {
       } else {
         // POTENTIAL SINGLE CLICK
         clickTimer = setTimeout(async () => {
-          if (previousSelectedKavithai) {
-            previousSelectedKavithai.classList.remove('selected');
-          }
-          previousSelectedKavithai = btn;
-          btn.classList.add('selected');
-          await fetchAndSaveKavithai(file);
+          await handleSelection();
           clickTimer = null;
         }, 250);
       }
+    };
+    btn.onpointerdown = () => {
+      // WILL CREATE SMALL HORIZONTAL LINE LIKE A IN_PROGRESS BAR IN THE BUTTON
+      btn.classList.add('copy-url');
+      // Start a timer for 400ms (standard long-press) // TO AVOID THE CLIPBOARD PERMISSION USE <400ms
+      holdTimer = setTimeout(() => {
+        doCopyToClipBoard(file);
+        btn.classList.remove('copy-url');
+        btn.classList.add('copy-url-success');
+        setTimeout(() => btn.classList.remove('copy-url-success'), 1000);
+      }, 400);
+    };
+    btn.onpointerup = (e) => {
+      clearTimeout(holdTimer);
+      btn.classList.remove('copy-url')
     };
     kavithaigalFiles.appendChild(btn);
   }

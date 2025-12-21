@@ -102,6 +102,7 @@ body {
 /* ------------------------------------ */
 
 .kavithaiBtn {
+  position: relative; /* REQUIRED for the progress bar anchor */
   width: 100%;
   padding: 0.75rem;
   /* Converted from 12px */
@@ -125,6 +126,35 @@ body {
   overflow-y: hidden;       /* Hides vertical scrollbar */
   text-overflow: clip;      /* Clipping is fine when scrolling is enabled */
   /* -------------------------------------- */
+  /* Prevent blue highlight box on mobile tap */
+  -webkit-tap-highlight-color: transparent; 
+}
+
+/* The Progress Bar Line */
+.kavithaiBtn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;       /* Thin line at the bottom */
+  width: 0%;         /* Hidden by default */
+  background-color: #1a73e8;
+  transition: none;  /* Instant reset when letting go */
+}
+
+/* Active Holding State */
+.kavithaiBtn.copy-url::after {
+  width: 100%;
+  transition: width 0.8s linear; /* Matches your JS timer */
+}
+
+/* Success State */
+.kavithaiBtn.copy-url-success {
+  background-color: #e6f4ea !important
+}
+.kavithaiBtn.copy-url-success::after {
+  background-color: #188038;
+  width: 100%;
 }
 
 .selected {
