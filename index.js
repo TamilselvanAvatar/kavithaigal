@@ -325,7 +325,7 @@ async function refreshIndexedDB() {
   const isQueryParamPresent = window?.location?.href?.includes('?');
   if (refreshedCount >= refreshCount || (queryParamPresentPreviously && !isQueryParamPresent)) {
     await deleteIndexedDB(KAVITHAI_DB);
-    if (isQueryParamPresent) {
+    if (isQueryParamPresent && id) {
       window.location.href = getActualUrl();
     }
   } else {
