@@ -278,6 +278,34 @@ pre#kavithaiContent {
   display: none;
 }
 
+.poper-hover {
+  z-index: 10;
+  position: absolute;
+  background-color: #000000b0;
+  padding-right: 50%;
+  padding-left: 50%;
+  display: flex;
+  align-items: center;
+  padding-bottom: 100vh;
+  padding-top: 20%;
+}
+
+.poper-hover input {
+  border-radius: 12px;
+  box-sizing: border-box;
+  border: none;
+  padding: 11px;
+  margin: 1rem;
+  min-width: 150%;
+}
+
+.poper-hover button {
+  border-radius: 25px;
+  border: none;
+  padding: 0.75rem;
+  background-color: #4f46e5;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);

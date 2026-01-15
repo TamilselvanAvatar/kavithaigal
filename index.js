@@ -8,6 +8,7 @@ const KAVITHAIGAL_KEY = 'kavithaigalFiles';
 const KAVITHAI_CONTENT_KEY = 'kavithaiContent';
 const KAVITHAI_REFRESHED_COUNT_KEY = 'refreshedCount';
 const QUERY_PARAMS_PRESENT_PREVIOUSLY = 'queryParamPresentPreviously'
+const EXPIRED_DATE = 'expiredDate'
 const kavithaigalFileHandle = [];
 const isLocal = paramsObject.isLocal || false;
 const refreshCount = paramsObject.refresh || 5;
@@ -32,6 +33,7 @@ const kavithaiContent = document.getElementById('kavithaiContent');
 const kavithaiCount = document.getElementById('kavithaiCount');
 const pickBtn = document.getElementById('pickFolder');
 const loader = document.getElementById('loader');
+const popHover = document.getElementById('pop-hover');
 
 
 const metaData = [
@@ -122,15 +124,62 @@ function getQueryParam(param, paramValue) {
   return (paramValue ? `&${param}=${paramValue}` : '')
 }
 
-function setFileContent(fileName, kavithaiContentText) {
-  kavithaiTitle.textContent = fileName;
-  kavithaiContent.innerHTML = formatKavithai(kavithaiContentText); // preserves spaces & line breaks
+function getKavithaiUrl(fileId) {
+  return `${url}?action=${GET_KAVITHAI}&id=${fileId}`
+}
+
+function isEqual(currentDate, expiredDate) {
+  return formattedDate(currentDate) === formattedDate(expiredDate);
+}
+
+function formattedDate(date) {
+  return new Date(date).toDateString();
+}
+
+function onPrivateKavithaiLoad(kavithaiMetaData) {
+  const input = document.createElement('input')
+  const button = document.createElement('button')
+  button.textContent = '>';
+  input.placeholder = 'நுழைவு அனுமதிப் பதிவை உள்ளிடவும்';
+  button.onclick = () => {
+    kavithaiContent.style.display = 'none';
+    kavithaiContent.replaceChildren();
+    addSpinner(container);
+    loadGetScript(getKavithaiUrl(kavithaiMetaData.id), input.value)
+    popHover.className = '';
+    popHover.replaceChildren()
+  }
+  popHover.appendChild(input);
+  popHover.appendChild(button);
+  popHover.className = 'poper-hover';
+}
+
+function setKavithaiTitle(fileName, kavithaiMetaData) {
+  if (!kavithaiMetaData.private) {
+    kavithaiTitle.textContent = fileName;
+  } else {
+    const span = document.createElement('span');
+    const p = document.createElement('span');
+    span.id = 'icon';
+    span.title = 'show';
+    span.textContent = '👁️';
+    span.onclick = () => onPrivateKavithaiLoad(kavithaiMetaData);
+    p.textContent = fileName;
+    p.appendChild(span)
+    kavithaiTitle.replaceChildren(p);
+  }
+}
+
+function setFileContent(kavithaiMetaData) {
+  kavithaiContent.innerHTML = formatKavithai(kavithaiMetaData); // preserves spaces & line breaks
   kavithaiContent.style.backgroundColor = getMataData().color;
+  kavithaiContent.style.display = 'block';
   content.hidden = false;
   removeSpinner(container);
 }
 
-function formatKavithai(kavithai) {
+function formatKavithai(kavithaiFileMetaData) {
+  const kavithai = kavithaiFileMetaData.content;
   if (!kavithai) {
     return '';
   }
@@ -151,7 +200,7 @@ function formatKavithai(kavithai) {
     }
     return !isMeta && !ignore;
   }).join('\n');
-  kavithaiTitle.textContent = (kavithaiMetaData.Title || kavithaiTitle.textContent) + getEmoji();
+  setKavithaiTitle(((kavithaiMetaData.Title || kavithaiFileMetaData.name) + getEmoji()), kavithaiFileMetaData);
   const author = kavithaiMetaData.Author ?? '';
   const date = kavithaiMetaData.Date ?? '';
   const dateStr = `<b>தேதி: ${date}\n</b>`
@@ -159,9 +208,9 @@ function formatKavithai(kavithai) {
   return (includeDate ? dateStr : '') + modifiedKavithai + (author && `\n\n${emptySpace}<strong><i>- ${author}</i></strong>`);
 }
 
-function loadGetScript(url) {
+function loadGetScript(url, key) {
   const script = document.createElement('script');
-  const modifiedUrl = url + getQueryParam('code', code) + getQueryParam('id', id);
+  const modifiedUrl = url + getQueryParam('code', code) + getQueryParam('id', id) + getQueryParam('key', key);
   script.defer = true; // PARSE HTML COMPLETELY
   script.src = modifiedUrl + `&callback=handleExecutedScript`; // ONLY WORK FOR GET REQUEST
   script.onload = () => script.remove(); // CLEAN UP ONCE LOADED
@@ -200,16 +249,14 @@ async function handleExecutedScript(response) {
   switch (response.action) {
     case GET_KAVITHAIKAL: {
       const files = responseData;
-      const modifiedFiles = files.map(f => ({ name: f.name, id: f.id, url: `${url}?action=${GET_KAVITHAI}&id=${f.id}` }));
+      const modifiedFiles = files.map(f => ({ name: f.name, id: f.id, url: getKavithaiUrl(f.id) }));
       await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY, modifiedFiles);
       await loadKavithigalFiles(modifiedFiles);
       break;
     }
     case GET_KAVITHAI: {
-      const fileName = responseData.name;
-      const kavithaiContentText = responseData.content;
-      setFileContent(fileName, kavithaiContentText);
-      await saveInfoInIndexedDB(KAVITHAI_CONTENT_KEY, fileName, kavithaiContentText)
+      setFileContent(responseData);
+      await saveInfoInIndexedDB(KAVITHAI_CONTENT_KEY, responseData.name, responseData)
       break;
     }
     default: {
@@ -293,11 +340,11 @@ async function fetchAndSaveKavithai(file) {
   content.hidden = true;
   document.body.classList.add('active');
   const fileName = file.name;
-  const savedKavithai = await getInfoFromIndexedDB(KAVITHAI_CONTENT_KEY, fileName);
-  if (!savedKavithai) {
+  const savedKavithaiMetaData = await getInfoFromIndexedDB(KAVITHAI_CONTENT_KEY, fileName);
+  if (!savedKavithaiMetaData) {
     loadGetScript(file.url);
   } else {
-    setFileContent(fileName, savedKavithai);
+    setFileContent(savedKavithaiMetaData);
   }
 }
 
@@ -321,10 +368,12 @@ function openDB() {
 
 async function refreshIndexedDB() {
   const refreshedCount = (await getInfoFromIndexedDB(KAVITHAIGAL_KEY, KAVITHAI_REFRESHED_COUNT_KEY)) ?? 0;
+  const expiredDate = await getInfoFromIndexedDB(KAVITHAIGAL_KEY, EXPIRED_DATE);
   const queryParamPresentPreviously = (await getInfoFromIndexedDB(KAVITHAIGAL_KEY, QUERY_PARAMS_PRESENT_PREVIOUSLY)) ?? false;
   const isQueryParamPresent = window?.location?.href?.includes('?');
-  if (refreshedCount >= refreshCount || (queryParamPresentPreviously && !isQueryParamPresent)) {
+  if (refreshedCount >= refreshCount || (queryParamPresentPreviously && !isQueryParamPresent) || !expiredDate || !isEqual(new Date(), expiredDate)) {
     await deleteIndexedDB(KAVITHAI_DB);
+    await saveInfoInIndexedDB(KAVITHAIGAL_KEY, EXPIRED_DATE, new Date());
     if (isQueryParamPresent && id) {
       window.location.href = getActualUrl();
     }
