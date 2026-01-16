@@ -19,6 +19,7 @@ const GET_KAVITHAI = 'GET_KAVITHAI';
 const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
 const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
 let asc = false;
+let showSortAndSearch = false;
 let scriptTimeout;
 let timeOutSearch;
 let clickTimer;
@@ -38,25 +39,16 @@ const pickBtn = document.getElementById('pickFolder');
 const loader = document.getElementById('loader');
 const popHover = document.getElementById('pop-hover');
 const h2 = document.getElementById('kavithaigal');
-const filterAndSearch = document.getElementById('filterAndSearch');
+const searchAndSort = document.getElementById('filterAndSearch');
 
-document.addEventListener("keydown", (e) => {
-  if (e.key === 'ArrowUp') {
-    filterAndSearch.replaceChildren();
+h2.addEventListener('dblclick', (e) => {
+  e.preventDefault();
+  if (!showSortAndSearch) {
+    loadSearchAndSort();
+  } else {
+    clearSearchAndSort();
   }
-  if (e.key === 'ArrowDown') {
-    filterAndSearch.replaceChildren();
-    const input = document.createElement('input');
-    const button = document.createElement('button');
-    input.id = 'searchTerm';
-    input.placeholder = 'தேடுக';
-    button.title = 'sort';
-    button.textContent = '🔃';
-    input.onchange = e => searchKavithaigal(e);
-    button.onclick = () => sortKavithaigal();
-    filterAndSearch.appendChild(input);
-    filterAndSearch.appendChild(button);
-  }
+  showSortAndSearch = !showSortAndSearch;
 });
 
 
@@ -177,6 +169,24 @@ function isContain(serachTerm, text) {
 
 function formattedDate(date) {
   return new Date(date).toDateString();
+}
+
+function clearSearchAndSort() {
+  searchAndSort.replaceChildren();
+}
+
+function loadSearchAndSort() {
+  searchAndSort.replaceChildren();
+  const input = document.createElement('input');
+  const button = document.createElement('button');
+  input.id = 'searchTerm';
+  input.placeholder = 'தேடுக';
+  button.title = 'sort';
+  button.textContent = '🔃';
+  input.onchange = e => searchKavithaigal(e);
+  button.onclick = () => sortKavithaigal();
+  searchAndSort.appendChild(input);
+  searchAndSort.appendChild(button);
 }
 
 function onPrivateKavithaiLoad(kavithaiMetaData) {

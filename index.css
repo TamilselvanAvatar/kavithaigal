@@ -327,6 +327,11 @@ pre#kavithaiContent {
   border: none;
 }
 
+#kavithaigal, #filterAndSearch {
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
