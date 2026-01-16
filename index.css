@@ -329,6 +329,7 @@ pre#kavithaiContent {
 
 #kavithaigal, #filterAndSearch {
   user-select: none;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 

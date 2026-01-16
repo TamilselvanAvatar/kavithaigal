@@ -25,7 +25,9 @@ let timeOutSearch;
 let clickTimer;
 let holdTimer;
 let previousSelectedKavithai;
-let kavithaiFiles = []
+let kavithaiFiles = [];
+let touchStartY = 0;
+let touchEndY = 0;
 
 // UI Elements
 const sidebar = document.getElementById('sidebar');
@@ -42,15 +44,36 @@ const h2 = document.getElementById('kavithaigal');
 const searchAndSort = document.getElementById('filterAndSearch');
 
 h2.addEventListener('dblclick', (e) => {
+  // For LAB or DESKTOP
   e.preventDefault();
+  handleShowSearchAndSort();
+});
+
+h2.addEventListener('touchstart', e => {
+  touchStartY = e.changedTouches[0].screenY;
+}, false);
+
+h2.addEventListener('touchend', e => {
+  touchEndY = e.changedTouches[0].screenY;
+  handleSwipe();
+}, false);
+
+function handleSwipe() {
+  // For Mobile
+  const threshold = 50;
+  if (touchStartY - touchEndY < threshold) {
+    handleShowSearchAndSort();
+  }
+}
+
+function handleShowSearchAndSort() {
   if (!showSortAndSearch) {
     loadSearchAndSort();
   } else {
     clearSearchAndSort();
   }
   showSortAndSearch = !showSortAndSearch;
-});
-
+}
 
 const metaData = [
   {
