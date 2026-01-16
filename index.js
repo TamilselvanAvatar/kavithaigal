@@ -18,10 +18,13 @@ const id = paramsObject.id;
 const GET_KAVITHAI = 'GET_KAVITHAI';
 const GET_KAVITHAIKAL = 'GET_KAVITHAIKAL';
 const emoji = ['🌸', '🌼', '✨', '🌿', '🕊️', '🌺', '🌞'];
+let asc = false;
 let scriptTimeout;
+let timeOutSearch;
 let clickTimer;
 let holdTimer;
 let previousSelectedKavithai;
+let kavithaiFiles = []
 
 // UI Elements
 const sidebar = document.getElementById('sidebar');
@@ -34,6 +37,27 @@ const kavithaiCount = document.getElementById('kavithaiCount');
 const pickBtn = document.getElementById('pickFolder');
 const loader = document.getElementById('loader');
 const popHover = document.getElementById('pop-hover');
+const h2 = document.getElementById('kavithaigal');
+const filterAndSearch = document.getElementById('filterAndSearch');
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === 'ArrowUp') {
+    filterAndSearch.replaceChildren();
+  }
+  if (e.key === 'ArrowDown') {
+    filterAndSearch.replaceChildren();
+    const input = document.createElement('input');
+    const button = document.createElement('button');
+    input.id = 'searchTerm';
+    input.placeholder = 'தேடுக';
+    button.title = 'sort';
+    button.textContent = '🔃';
+    input.onchange = e => searchKavithaigal(e);
+    button.onclick = () => sortKavithaigal();
+    filterAndSearch.appendChild(input);
+    filterAndSearch.appendChild(button);
+  }
+});
 
 
 const metaData = [
@@ -130,6 +154,25 @@ function getKavithaiUrl(fileId) {
 
 function isEqual(currentDate, expiredDate) {
   return formattedDate(currentDate) === formattedDate(expiredDate);
+}
+
+function isContain(serachTerm, text) {
+  if (!serachTerm) {
+    return true;
+  }
+  let i = -1;
+  let count = 0;
+  const terms = serachTerm?.trim().split('');
+  for (const term of terms) {
+    while (i < text.length) {
+      i++;
+      if (term === text[i]) {
+        count++;
+        break;
+      }
+    }
+  }
+  return count === terms.length;
 }
 
 function formattedDate(date) {
@@ -242,14 +285,32 @@ function handleFailure(data = {}) {
   `;
 }
 
+async function sortKavithaigal() {
+  addSpinner(kavithaigalFiles);
+  asc = !asc;
+  kavithaiFiles = kavithaiFiles.sort((a, b) => (asc ? 1 : -1) * (a.name < b.name ? 1 : -1));
+  await loadKavithigalFiles(kavithaiFiles)
+}
+
+function searchKavithaigal(event) {
+  const kavithaiTitle = event.target.value;
+  if (timeOutSearch != null) {
+    clearTimeout(timeOutSearch);
+  }
+  timeOutSearch = setTimeout(async () => {
+    addSpinner(kavithaigalFiles);
+    await loadKavithigalFiles(kavithaiFiles.filter(e => isContain(kavithaiTitle, e.name)))
+  }, 500)
+}
+
 // Handle Executed Script
 async function handleExecutedScript(response) {
   clearTimeout(scriptTimeout);
   const responseData = response.data;
   switch (response.action) {
     case GET_KAVITHAIKAL: {
-      const files = responseData;
-      const modifiedFiles = files.map(f => ({ name: f.name, id: f.id, url: getKavithaiUrl(f.id) }));
+      kavithaiFiles = responseData;
+      const modifiedFiles = kavithaiFiles.map(f => ({ name: f.name, id: f.id, url: getKavithaiUrl(f.id) }));
       await saveInfoInIndexedDB(KAVITHAIGAL_KEY, KAVITHAIGAL_KEY, modifiedFiles);
       await loadKavithigalFiles(modifiedFiles);
       break;
@@ -443,5 +504,6 @@ window.addEventListener('DOMContentLoaded', async () => {
   } else if (isLocal) {
     pickBtn.hidden = false;
   }
+  kavithaiFiles = savedKavithaigalFiles;
   await loadKavithigalFiles(savedKavithaigalFiles);
 });

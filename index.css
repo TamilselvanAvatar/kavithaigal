@@ -306,6 +306,27 @@ pre#kavithaiContent {
   background-color: #4f46e5;
 }
 
+#filterAndSearch {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+#filterAndSearch input {
+  padding: 0.3rem 1rem;
+  border-radius: 12px;
+  background-color: #869be233;
+  border: none;
+}
+
+#filterAndSearch button {
+  background-color: rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 0.2rem;
+  border: none;
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);
