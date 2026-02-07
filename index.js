@@ -477,7 +477,7 @@ async function fetchAndSaveKavithai(file) {
 // IndexedDB Helpers
 function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(KAVITHAI_DB, 1);
+    const req = indexedDB.open(KAVITHAI_DB, 2);
     req.onupgradeneeded = e => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains(KAVITHAIGAL_KEY)) {
