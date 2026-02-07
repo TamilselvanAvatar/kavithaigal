@@ -166,6 +166,11 @@ body {
   /* Converted from 4px */
 }
 
+.markAsRead {
+  background: #cbffa6;
+  border-left: 0.25rem solid #1da502;
+}
+
 .kavithaiBtn:hover {
   background: #e0e7ff;
   transform: translateY(-0.0625rem);
@@ -203,6 +208,10 @@ body {
   margin-bottom: 0.5rem;
   text-align: center;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-left: 1.0rem;
 }
 
 pre#kavithaiContent {
@@ -342,6 +351,42 @@ pre#kavithaiContent {
     transform: rotate(360deg);
   }
 }
+
+/* Toogle Start */
+.toggle {
+  appearance: none;
+  width: 40px;
+  height: 20px;
+  background: #ccc;
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+  outline: none;
+  transition: 0.3s;
+}
+
+/* The Knob */
+.toggle::before {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: 0.3s;
+}
+
+/* Active State */
+.toggle:checked {
+  background: #4CAF50;
+}
+
+.toggle:checked::before {
+  transform: translateX(20px);
+}
+/* Toogle End */
 
 /* ---- TOAST MESSAGE ---- */
 #toast {
